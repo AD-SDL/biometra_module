@@ -20,5 +20,11 @@
     <Reference Include="BiometraLibraryNet">
       <HintPath>BiometraLibrary\BiometraLibraryNet.dll</HintPath>
     </Reference>
+    <Reference Include="BiometraLibraryResources">
+      <HintPath>BiometraLibrary\BiometraLibraryResources.dll</HintPath>
+    </Reference>
+    <Reference Include="HiGIntegration">
+      <HintPath>HiGIntegration.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
