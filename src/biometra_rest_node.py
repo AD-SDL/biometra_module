@@ -83,12 +83,6 @@ def test_node_startup(state: State):
     print(DeviceCom.GetNumberOfScannedDevices())
     blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, device)
     print(state.device)
-    #checkStateResult = blockCmds.CloseMotLid(device, BlockNumber(1))
-    #checkStateResult = blockCmds.StartProgramOnBlock(device, UserInitials("ADM"), ProgramNumber(5, EnProgramType.TYPE_PROGRAM), BlockNumber(1), True)
-    #checkStateResult = blockCmds.OpenMotLid(device, BlockNumber(1))
-    #tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, state.device)
-    #deviceComResult = tcdaCmds.GetBlockState(state.device, BlockNumber(1))
-    #print(deviceComResult[1])
 
 @biometra_rest_node.state_handler()
 def state_handler(state: State) -> ModuleState:
@@ -96,8 +90,9 @@ def state_handler(state: State) -> ModuleState:
     tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, state.device,)
     deviceComResult, test = tcdaCmds.GetBlockState(state.device, BlockNumber(1),  BlockState())
     if test.ActiveBlock:
-        state.status = ModuleStatus.BUSY
-    return ModuleState(status=state.status)
+        return ModuleState(status=state.status)
+    else:
+        return ModuleState(status=state.status)
 
 @biometra_rest_node.action(
     name="open",
@@ -107,10 +102,11 @@ def open(state: State, action: ActionRequest) -> StepResponse:
     """
     opens the Biometra Lid
     """
-    blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
-    checkStateResult = blockCmds.OpenMotLid(state.device, BlockNumber(1))
-    time.sleep(20)
-
+    await_not_busy(state.device)
+    if get_lid_state(state.device) == "closed":
+        blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
+        checkStateResult = blockCmds.OpenMotLid(state.device, BlockNumber(1))
+        time.sleep(20)
     return StepSucceeded()
 
 @biometra_rest_node.action(
@@ -121,10 +117,11 @@ def close(state: State, action: ActionRequest) -> StepResponse:
     """
     closes the Biometra Lid
     """
-    blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
-    checkStateResult = blockCmds.CloseMotLid(state.device, BlockNumber(1))
-    time.sleep(20)
-
+    await_not_busy(state.device)
+    if get_lid_state(state.device) == "open":
+        blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
+        checkStateResult = blockCmds.CloseMotLid(state.device, BlockNumber(1))
+        time.sleep(20)
     return StepSucceeded()
 @biometra_rest_node.action(
     name="run_program",
@@ -141,15 +138,44 @@ def run_program(state: State, action: ActionRequest,  program_number: Annotated[
     tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, state.device,)
     deviceComResult, test = tcdaCmds.GetBlockState(state.device, BlockNumber(1),  BlockState())
     while(not(test.ActiveBlock)):
+        
         tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, state.device,)
         deviceComResult, test = tcdaCmds.GetBlockState(state.device, BlockNumber(1),  BlockState())
-    while(test.ActiveBlock):
-        tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, state.device,)
-        deviceComResult, test = tcdaCmds.GetBlockState(state.device, BlockNumber(1),  BlockState())
+    await_not_busy(state.device)
+    while(get_lid_state(state.device) == "busy"):
+        print("waiting")
+        time.sleep(1)
     return StepSucceeded()
 
 
- 
+def await_not_busy(device: any):
+    tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, device,)
+    deviceComResult, test = tcdaCmds.GetBlockState(device, BlockNumber(1),  BlockState())
+    while(test.ActiveBlock):
+        tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, device,)
+        deviceComResult, test = tcdaCmds.GetBlockState(device, BlockNumber(1),  BlockState())
+
+def get_lid_state(device: any):
+            tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, device)
+            deviceComResult, test = tcdaCmds.GetMotLidState(device)
+            print("getting lid state...")
+            lid_state = test.ToString()
+            print(test)
+            if lid_state == "0000 0000 0000 0011;;":
+                return "open"
+            elif lid_state == "0000 0000 0000 0101;;":
+                return "closed"
+            
+            else:
+                return "busy"
+
+
+
+
+
+
+
 if __name__ == "__main__":
     biometra_rest_node.start()
+
 
