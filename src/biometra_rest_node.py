@@ -32,7 +32,7 @@ from typing import Annotated
 from fastapi.datastructures import State
 from wei.modules.rest_module import RESTModule
 from wei.types import StepResponse
-from wei.types.step_types import StepSucceeded
+from wei.types.step_types import StepSucceeded, StepFailed
 from wei.types.module_types import (
     ModuleState,
 )
@@ -97,13 +97,24 @@ def open(state: State, action: ActionRequest) -> StepResponse:
     """
     opens the Biometra Lid
     """
-    await_not_busy(state.device)
-    if get_lid_state(state.device) == "closed":
-        blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
-        blockCmds.OpenMotLid(state.device, BlockNumber(1))
-        while get_lid_state(state.device) != "open":
-            time.sleep(1)
-    return StepSucceeded()
+    start = time.time()
+    while time.time() - start < 60:
+        if get_lid_state(state.device) == "closed":
+            blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
+            blockCmds.OpenMotLid(state.device, BlockNumber(1))
+            command_sent = time.time()
+            while time.time() - command_sent < 60:
+                if get_lid_state(state.device) == "open":
+                    return StepSucceeded()
+                time.sleep(1)
+            else:
+                return StepFailed(error="Timeout after sending command")
+        if get_lid_state(state.device) == "open":
+            return StepSucceeded()
+        time.sleep(1)
+    else:
+        return StepFailed(error="Timeout waiting for lid state")
+    
 
 @biometra_rest_node.action(
     name="close",
@@ -113,13 +124,26 @@ def close(state: State, action: ActionRequest) -> StepResponse:
     """
     closes the Biometra Lid
     """
-    await_not_busy(state.device)
-    if get_lid_state(state.device) == "open":
-        blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
-        blockCmds.CloseMotLid(state.device, BlockNumber(1))
-        while get_lid_state(state.device) != "closed":
-            time.sleep(1)
-    return StepSucceeded()
+    start = time.time()
+    while time.time() - start < 60:
+        if get_lid_state(state.device) == "open":
+            blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
+            blockCmds.CloseMotLid(state.device, BlockNumber(1))
+            command_sent = time.time()
+            while time.time() - command_sent < 60:
+                if get_lid_state(state.device) == "closed":
+                    return StepSucceeded()
+                time.sleep(1)
+            else:
+                return StepFailed(error="Timeout after sending command")
+        if get_lid_state(state.device) == "closed":
+            return StepSucceeded()
+        time.sleep(1)
+    else:
+        return StepFailed(error="Timeout waiting for lid state")
+
+
+
 @biometra_rest_node.action(
     name="run_program",
     description="Runs a program on the Biometra",
