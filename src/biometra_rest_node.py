@@ -29,17 +29,12 @@ import os
 
 from typing import Annotated
 
-from fastapi import UploadFile
 from fastapi.datastructures import State
 from wei.modules.rest_module import RESTModule
-from wei.types import StepFileResponse, StepResponse, StepStatus
+from wei.types import StepResponse
 from wei.types.step_types import StepSucceeded
 from wei.types.module_types import (
-    LocalFileModuleActionResult,
-    Location,
     ModuleState,
-    ValueModuleActionResult,
-    ModuleStatus,
 )
 from wei.types.step_types import ActionRequest
 
@@ -105,8 +100,9 @@ def open(state: State, action: ActionRequest) -> StepResponse:
     await_not_busy(state.device)
     if get_lid_state(state.device) == "closed":
         blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
-        checkStateResult = blockCmds.OpenMotLid(state.device, BlockNumber(1))
-        time.sleep(20)
+        blockCmds.OpenMotLid(state.device, BlockNumber(1))
+        while get_lid_state(state.device) != "open":
+            time.sleep(1)
     return StepSucceeded()
 
 @biometra_rest_node.action(
@@ -120,8 +116,9 @@ def close(state: State, action: ActionRequest) -> StepResponse:
     await_not_busy(state.device)
     if get_lid_state(state.device) == "open":
         blockCmds = BlockCmds(ApplicationSettings.CommunicationSettings, state.device)
-        checkStateResult = blockCmds.CloseMotLid(state.device, BlockNumber(1))
-        time.sleep(20)
+        blockCmds.CloseMotLid(state.device, BlockNumber(1))
+        while get_lid_state(state.device) != "closed":
+            time.sleep(1)
     return StepSucceeded()
 @biometra_rest_node.action(
     name="run_program",
@@ -150,17 +147,18 @@ def run_program(state: State, action: ActionRequest,  program_number: Annotated[
 
 def await_not_busy(device: any):
     tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, device,)
-    deviceComResult, test = tcdaCmds.GetBlockState(device, BlockNumber(1),  BlockState())
-    while(test.ActiveBlock):
+    deviceComResult, response = tcdaCmds.GetBlockState(device, BlockNumber(1),  BlockState())
+    print(deviceComResult, response.ActiveBlock)
+    while(response.ActiveBlock):
         tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, device,)
-        deviceComResult, test = tcdaCmds.GetBlockState(device, BlockNumber(1),  BlockState())
+        deviceComResult, response = tcdaCmds.GetBlockState(device, BlockNumber(1),  BlockState())
 
 def get_lid_state(device: any):
             tcdaCmds = TcdaCmds(ApplicationSettings.CommunicationSettings, device)
-            deviceComResult, test = tcdaCmds.GetMotLidState(device)
+            deviceComResult, response = tcdaCmds.GetMotLidState(device)
             print("getting lid state...")
-            lid_state = test.ToString()
-            print(test)
+            lid_state = response.ToString()
+            print(response)
             if lid_state == "0000 0000 0000 0011;;":
                 return "open"
             elif lid_state == "0000 0000 0000 0101;;":
