@@ -1,0 +1,39 @@
+[project]
+name = "biometra_module"
+version = "1.1.0"
+description = "Software for automatting a Biometra Thermocycler"
+authors = [
+    {name = "Casey Stone", email="cstone@anl.gov"},
+    {name = "Ryan D. Lewis", email="ryan.lewis@anl.gov"},
+    {name = "Abe Stroka", email="astroka@anl.gov"},
+]
+
+dependencies = [
+    "madsci.node_module~=0.5.4",
+    "madsci.client~=0.5.4",
+    "madsci.common~=0.5.4",
+    "pywin32",
+    "comtypes",
+    "pythonnet",
+]
+
+requires-python = ">=3.9.1"
+readme = "README.md"
+license = {text = "MIT"}
+
+[project.urls]
+homepage = "https://github.com/AD-SDL/biometra_module"
+
+######################
+# Build Info + Tools #
+######################
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.7",
+    "pytest",
+]

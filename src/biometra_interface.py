@@ -4,9 +4,12 @@ import gc
 import time
 from typing import Optional
 
+from madsci.client.event_client import EventClient
+
 import clr
 
-clr.AddReference(r"\\BiometraLibrary\\BiometraLibraryNet.dll") #TODO: fix path
+# clr.AddReference
+clr.AddReference("C://Users//RPL//source//repos//biometra_module//src//BiometraLibrary//BiometraLibraryNet.dll") #TODO: fix path
 
 from BiometraLibrary.ApplicationClasses.ApplicationSettingsClasses import (
     ApplicationSettings,
@@ -21,13 +24,14 @@ from BiometraLibrary.CommunicationClasses.SerialComClasses import (
 from BiometraLibrary.CommunicationClasses import EnCommunicationTimeout
 from BiometraLibrary.DeviceExtComClasses.BlockClasses import BlockCmds
 from BiometraLibrary.DeviceExtComClasses.BlockClasses.BlockDataClasses import BlockNumber
-from BiometraLibrary.DeviceExtComClasses.DeviceComClasses import DeviceCom
+from BiometraLibrary.DeviceExtComClasses.DeviceComClasses import DeviceCom, DeviceComParams
 from BiometraLibrary.DeviceExtComClasses.LoginOutClasses import LoginOutCmds
 from BiometraLibrary.DeviceExtComClasses.LoginOutClasses.UserClasses.UserDataClasses import (
     UserInitials,
     UserPassword,
 )
-from BiometraLibrary.DeviceExtComClasses.ProgClasses import ProgramNumber, EnProgramType
+from BiometraLibrary.DeviceExtComClasses.ProgClasses.ProgDataClasses.ProgEditClasses import ProgramNumber, EnProgramType
+# from BiometraLibrary.DeviceExtComClasses.ProgClasses import EnProgramType
 from BiometraLibrary.DeviceExtComClasses.SystemClasses.InfoClasses import InfoCmds
 from BiometraLibrary.DeviceExtComClasses.SystemClasses.TcdaClasses import TcdaCmds
 from System import GC
@@ -37,12 +41,15 @@ class BiometraInterface:
     """Interface for the Biometra thermocycler via BiometraLibrary."""
 
     def __init__(
-        self
-    ):
+        self,
+        logger: EventClient = None,
+    ) -> None:
         """Initialize the Biometra interface"""
         self.device_list = None
         self.connected_device_num = None
+        self.logger = logger or EventClient()
         self._initialize_connection()
+    
 
     def _initialize_connection(self) -> None:
         """Initialize serial connection and find devices."""
@@ -64,9 +71,13 @@ class BiometraInterface:
             ApplicationSettings.CommunicationSettings.SerialComSettings.EnableCommunication = True
 
             ApplicationSettings.SaveApplicationSettings()
-            self.logger.log("Serial connection enabled")
+            self.logger.log_info("Serial connection enabled")
+            print("serial connection enabled")
 
             # Get device list
+
+            devices = InfoCmds.GetAllComAvailableDevices()
+            print(devices)
             self.device_list = DeviceCom.GetSavedDeviceDescriptions()
             self.logger.log(f"Found {self.device_list.Count} Biometra device(s)")
 
@@ -233,10 +244,14 @@ class BiometraInterface:
             Dictionary with status information
         """
         device_num = self.connect_device(plate_type)
+        print("ONE")
 
         try:
+            print("TWO")
             is_active = self._get_state(device_num)
+            print("THREE")
             status_msg = "block running" if is_active else "block free"
+            print(status_msg)
 
             return {
                 "is_active": is_active,
@@ -406,3 +421,10 @@ class BiometraInterface:
             gc.collect()
         except Exception:
             pass
+
+
+if __name__ == "__main__":
+    biometra = BiometraInterface()
+    # biometra.connect_device(96)
+    # biometra.close_lid(96)
+    biometra.get_status(96)

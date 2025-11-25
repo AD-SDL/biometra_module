@@ -9,6 +9,8 @@ from madsci.node_module.rest_node_module import RestNode
 
 from biometra_interface import BiometraInterface
 
+from madsci.client.event_client import EventClient
+
 
 class BiometraNodeConfig(RestNodeConfig):
     """Configuration for the Biometra node."""
@@ -24,17 +26,24 @@ class BiometraNode(RestNode):
     config: BiometraNodeConfig = BiometraNodeConfig()
     module_version = "1.0.0"
 
+    def __init__(self) -> None:
+        """Initializes the Biometra node."""
+        super().__init__()
+
     def startup_handler(self) -> None:
         """Called to (re)initialize the node. Should be used to open connections to devices or initialize any other resources."""
         self.init_resource_templates()
         self.create_resources()
 
+        # self.biometra = BiometraInterface(
+        #     device_port=self.config.device_port,
+        #     protocol = self.protocol,
+        #     logger=self.logger,
+        # )
         self.biometra = BiometraInterface(
-            device_port=self.config.device_port,
-            protocol = self.protocol,
             logger=self.logger,
         )
-        self.biometra.connect()
+        self.biometra.connect_device(96)
         #make sure open?
         # self.biometra.open()
 
@@ -70,14 +79,14 @@ class BiometraNode(RestNode):
     def state_handler(self) -> None:
         """Periodically checks the state of the Biometra device and updates the node's state."""
         if self.biometra:
-            self.biometra.get_status()
+            status = self.biometra.get_status(96) #TODO: un hard code
         else:
             self.logger.log_error("Biometra interface is not initialized")
-            return
+        #     return
 
-        self.node_state["status_message"] = self.biometra.ready_message.model_dump(
-            mode="json"
-        )
+        # self.node_state["status_message"] = self.biometra.ready_message.model_dump(
+        #     mode="json"
+        # )
 
     @action(name="run_protocol")
     def run_protocol(
@@ -104,14 +113,14 @@ class BiometraNode(RestNode):
         """Close the thermocycler lid."""
         self.biometra.close_lid(plate_type=plate_type)
 
-    @action(name="get_status")
-    def get_status(
-        self,
-        plate_type: Annotated[int, "Plate type definition (96 or 384)"],
-    ) -> str:
-        """Get the current status of the thermocycler."""
-        result = self.biometra.get_device_status(plate_type=plate_type)
-        return result.get("action_msg", "")
+    # @action(name="get_status")
+    # def get_status(
+    #     self,
+    #     plate_type: Annotated[int, "Plate type definition (96 or 384)"],
+    # ) -> str:
+    #     """Get the current status of the thermocycler."""
+    #     result = self.biometra.get_device_status(plate_type=plate_type)
+    #     return result.get("action_msg", "")
 
 
 if __name__ == "__main__":
