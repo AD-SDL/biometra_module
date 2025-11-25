@@ -31,7 +31,7 @@ class BiometraNode(RestNode):
 
         self.biometra = BiometraInterface(
             device_port=self.config.device_port,
-            protocol = self.protocol
+            protocol = self.protocol,
             logger=self.logger,
         )
         self.biometra.connect()
@@ -104,14 +104,14 @@ class BiometraNode(RestNode):
         """Close the thermocycler lid."""
         self.biometra.close_lid(plate_type=plate_type)
 
-    # @action(name="get_status")
-    # def get_status(
-    #     self,
-    #     plate_type: Annotated[int, "Plate type definition (96 or 384)"],
-    # ) -> str:
-    #     """Get the current status of the thermocycler."""
-    #     result = self.biometra.get_device_status(plate_type=plate_type)
-    #     return result.get("action_msg", "")
+    @action(name="get_status")
+    def get_status(
+        self,
+        plate_type: Annotated[int, "Plate type definition (96 or 384)"],
+    ) -> str:
+        """Get the current status of the thermocycler."""
+        result = self.biometra.get_device_status(plate_type=plate_type)
+        return result.get("action_msg", "")
 
 
 if __name__ == "__main__":
