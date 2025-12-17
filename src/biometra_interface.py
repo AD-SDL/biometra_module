@@ -244,14 +244,9 @@ class BiometraInterface:
             Dictionary with status information
         """
         device_num = self.connect_device(plate_type)
-        print("ONE")
-
         try:
-            print("TWO")
             is_active = self._get_state(device_num)
-            print("THREE")
             status_msg = "block running" if is_active else "block free"
-            print(status_msg)
 
             return {
                 "is_active": is_active,

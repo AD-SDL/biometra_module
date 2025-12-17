@@ -107,6 +107,7 @@ class BiometraNode(RestNode):
         """Open the thermocycler lid."""
         """check current state"""
         curr_state = self.biometra._get_lid_state(device_num=self.device_num)
+        print(curr_state)
         if curr_state == "open":
             self.logger.log("Biometra is already open")
         elif curr_state == "closed":
