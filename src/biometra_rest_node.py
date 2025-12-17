@@ -113,9 +113,10 @@ class BiometraNode(RestNode):
             self.logger.log("Biometra is opening")
             self.biometra.open_lid(plate_type=plate_type)
         # pause for 25 seconds, allow for lid to open
-        while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
-            self.logger.log("Biometra is opening")
-            time.sleep(5)
+        time.sleep(25)
+        # while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
+        #     self.logger.log("Biometra is opening")
+        #     time.sleep(5)
         if self.biometra._get_lid_state(device_num=self.device_num) == "open":
             self.logger.log("Biometra is open")
         elif self.biometra._get_lid_state(device_num=self.device_num) == "closed":
@@ -137,9 +138,10 @@ class BiometraNode(RestNode):
             self.logger.log("Biometra is closing")
             self.biometra.close_lid(plate_type=plate_type)
         # pause for 25 seconds, allow for lid to open
-        while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
-            self.logger.log("Biometra is closing")
-            time.sleep(5)
+        time.sleep(25)
+        # while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
+        #     self.logger.log("Biometra is closing")
+        #     time.sleep(5)
         if self.biometra._get_lid_state(device_num=self.device_num) == "closed":
             self.logger.log("Biometra is closed")
         elif self.biometra._get_lid_state(device_num=self.device_num) == "open":
