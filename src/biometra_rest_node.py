@@ -11,6 +11,8 @@ from biometra_interface import BiometraInterface
 
 from madsci.client.event_client import EventClient
 
+import time
+
 
 class BiometraNodeConfig(RestNodeConfig):
     """Configuration for the Biometra node."""
@@ -104,6 +106,10 @@ class BiometraNode(RestNode):
     ) -> None:
         """Open the thermocycler lid."""
         self.biometra.open_lid(plate_type=plate_type)
+        # pause for 25 seconds, allow for lid to open
+        time.sleep(25)
+        #TODO: check if lid open
+        # self.biometra._get_lid_state(plate_type=plate_type)
 
     @action(name="close_lid")
     def close_lid(
@@ -112,6 +118,9 @@ class BiometraNode(RestNode):
     ) -> None:
         """Close the thermocycler lid."""
         self.biometra.close_lid(plate_type=plate_type)
+        # pause for 25 seconds, allow for lid to open
+        time.sleep(25)
+        #TODO: check if lid open
 
     # @action(name="get_status")
     # def get_status(
