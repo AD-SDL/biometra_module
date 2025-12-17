@@ -45,7 +45,7 @@ class BiometraNode(RestNode):
         self.biometra = BiometraInterface(
             logger=self.logger,
         )
-        self.biometra.connect_device(96)
+        self.device_num = self.biometra.connect_device(96)
         #make sure open?
         # self.biometra.open()
 
@@ -105,11 +105,23 @@ class BiometraNode(RestNode):
         plate_type: Annotated[int, "Plate type definition (96 or 384)"],
     ) -> None:
         """Open the thermocycler lid."""
-        self.biometra.open_lid(plate_type=plate_type)
+        """check current state"""
+        curr_state = self.biometra._get_lid_state(device_num=self.device_num)
+        if curr_state == "open":
+            self.logger.log("Biometra is already open")
+        elif curr_state == "closed":
+            self.logger.log("Biometra is opening")
+            self.biometra.open_lid(plate_type=plate_type)
         # pause for 25 seconds, allow for lid to open
-        time.sleep(25)
-        #TODO: check if lid open
-        # self.biometra._get_lid_state(plate_type=plate_type)
+        while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
+            self.logger.log("Biometra is opening")
+            time.sleep(5)
+        if self.biometra._get_lid_state(device_num=self.device_num) == "open":
+            self.logger.log("Biometra is open")
+        elif self.biometra._get_lid_state(device_num=self.device_num) == "closed":
+            self.logger.log_error("Biometra is still closed")
+        # time.sleep(25)
+
 
     @action(name="close_lid")
     def close_lid(
@@ -117,10 +129,25 @@ class BiometraNode(RestNode):
         plate_type: Annotated[int, "Plate type definition (96 or 384)"],
     ) -> None:
         """Close the thermocycler lid."""
-        self.biometra.close_lid(plate_type=plate_type)
+        """check current state"""
+        curr_state = self.biometra._get_lid_state(device_num=self.device_num)
+        if curr_state == "closed":
+            self.logger.log("Biometra is already closed")
+        elif curr_state == "open":
+            self.logger.log("Biometra is closing")
+            self.biometra.close_lid(plate_type=plate_type)
         # pause for 25 seconds, allow for lid to open
-        time.sleep(25)
-        #TODO: check if lid open
+        while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
+            self.logger.log("Biometra is closing")
+            time.sleep(5)
+        if self.biometra._get_lid_state(device_num=self.device_num) == "closed":
+            self.logger.log("Biometra is closed")
+        elif self.biometra._get_lid_state(device_num=self.device_num) == "open":
+            self.logger.log_error("Biometra is still open")
+        # self.biometra.close_lid(plate_type=plate_type)
+        # pause for 25 seconds, allow for lid to open
+        # time.sleep(25)
+
 
     # @action(name="get_status")
     # def get_status(
