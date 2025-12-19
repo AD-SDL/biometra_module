@@ -9,9 +9,9 @@ authors = [
 ]
 
 dependencies = [
-    "madsci.node_module~=0.5.4",
-    "madsci.client~=0.5.4",
-    "madsci.common~=0.5.4",
+    "madsci.node_module~=0.6.0",
+    "madsci.client~=0.6.0",
+    "madsci.common~=0.6.0",
     "pywin32",
     "comtypes",
     "pythonnet",
