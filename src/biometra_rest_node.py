@@ -66,7 +66,7 @@ class BiometraNode(RestNode):
         """Create resources used by this node."""
         self.thermocycler_nest = self.resource_client.create_resource_from_template(
             "biometra_thermocycler_nest",
-            resource_name=f"{self.node_definition.node_name}_plate_nest",
+            resource_name=f"{self.node_info.node_name}_plate_nest",
         )
 
     def shutdown_handler(self) -> None:
