@@ -111,11 +111,7 @@ class BiometraNode(RestNode):
             status = self.biometra.get_status(96)  # TODO: un hard code
         else:
             self.logger.log_error("Biometra interface is not initialized")
-        #     return
 
-        # self.node_state["status_message"] = self.biometra.ready_message.model_dump(
-        #     mode="json"
-        # )
 
     @action(name="run_protocol")
     def run_protocol(
@@ -147,14 +143,10 @@ class BiometraNode(RestNode):
                 self.biometra.open_lid(plate_type=plate_type)
         # pause for 25 seconds, allow for lid to open
         time.sleep(25)
-        # while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
-        #     self.logger.log("Biometra is opening")
-        #     time.sleep(5)
         if self.biometra._get_lid_state(device_num=self.device_num) == "open":
             self.logger.log("Biometra is open")
         elif self.biometra._get_lid_state(device_num=self.device_num) == "closed":
             self.logger.log_error("Biometra is still closed")
-        # time.sleep(25)
 
     @action(name="close_lid")
     def close_lid(
@@ -176,25 +168,12 @@ class BiometraNode(RestNode):
                 self.biometra.close_lid(plate_type=plate_type)
         # pause for 25 seconds, allow for lid to open
         time.sleep(25)
-        # while self.biometra._get_lid_state(device_num=self.device_num) == "busy":
-        #     self.logger.log("Biometra is closing")
-        #     time.sleep(5)
         if self.biometra._get_lid_state(device_num=self.device_num) == "closed":
             self.logger.log("Biometra is closed")
         elif self.biometra._get_lid_state(device_num=self.device_num) == "open":
             self.logger.log_error("Biometra is still open")
-        # self.biometra.close_lid(plate_type=plate_type)
-        # pause for 25 seconds, allow for lid to open
-        # time.sleep(25)
 
-    # @action(name="get_status")
-    # def get_status(
-    #     self,
-    #     plate_type: Annotated[int, "Plate type definition (96 or 384)"],
-    # ) -> str:
-    #     """Get the current status of the thermocycler."""
-    #     result = self.biometra.get_device_status(plate_type=plate_type)
-    #     return result.get("action_msg", "")
+
 
 
 if __name__ == "__main__":
