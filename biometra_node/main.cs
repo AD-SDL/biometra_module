@@ -11,7 +11,7 @@ namespace biometra_node
         public static int Main(string[] args) => CommandLineApplication.Execute<Biometra>(args);
 
         [Option(Description = "Server Port")]
-        public int Port { get; } = 2002;
+        public int Port { get; } = 2008;
         [Option(Description = "Device ID")]
         public int Id { get; } = 0;
         [Option(Description = "Device Name (for logging)")]
