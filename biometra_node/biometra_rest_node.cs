@@ -35,7 +35,7 @@ namespace biometra_node
                     ""model"":""Analytik Jena Biometra TRobot II"",
                     ""interface"":""wei_rest_node"",
                     ""version"":""0.1.0"",
-                    ""description"":""Module for automatting a Biometra thermocycler."",
+                    ""description"":""Module for automating a Biometra thermocycler."",
                     ""actions"": [
                         {
                             ""name"":""run_protocol"",
